@@ -7,6 +7,18 @@ root.style.setProperty('--tile-size', `${TILE_SIZE}px`);  //48px
 root.style.setProperty('--helmet-offset', `${HELMET_OFFSET}px`);  //12px
 root.style.setProperty('--game-size', `${GAME_SIZE}px`);  //960px
 
+//configurado botão de reset.
+const resetButton = document.getElementById('reset');
+resetButton.addEventListener('click', () => {
+  location.reload();
+})
+
+//configurado contagem de passos.
+let initialSteps = 50;
+let currentSteps = initialSteps;
+const stepsCounter = document.getElementById('steps');
+stepsCounter.innerHTML = `Passos: ${initialSteps}`;
+
 // -------------------------------------------------------------------------
 
 function createBoard() {
@@ -33,6 +45,7 @@ function createBoard() {
 
         case 'ArrowUp':
           return { top: position.top - TILE_SIZE, left: position.left };
+          
 
         case 'ArrowRight':
           return { top: position.top, left: position.left + TILE_SIZE };
@@ -107,7 +120,32 @@ function createBoard() {
         htmlElement.style.top = `${newPosition.top}px`;
         htmlElement.style.left = `${newPosition.left}px`;
 
+         //verifica se o item que se moveu é o Hero.
+         if(currentElement.item === 'hero') {
+
+          //verifica se a tecla pressionada é válida.
+           if (buttonPressed === 'ArrowUp' ||
+              buttonPressed === 'ArrowRight' ||
+              buttonPressed === 'ArrowDown' ||
+              buttonPressed === 'ArrowLeft') {
+
+                //diminui um step e atualiza no contador.
+                currentSteps--;
+                stepsCounter.innerHTML = `Passos: ${currentSteps}`;
+              }
+        }
+
+        //se o contador chegar em 0, encerra o jogo e recarrega com o contador no valor inicial.
+        if (currentSteps === 0) {
+          setTimeout(() => {
+            alert('YOU LOST!');
+            location.reload();
+            currentSteps = initialSteps;
+          }, 100);
+        }
+
         validateConflicts(currentElement, conflictItem);
+        
       }
     }
 
@@ -163,11 +201,13 @@ const board = createBoard();
 //define o posicionamento inicial do Hero e dos Enemies.
 board.createHero({ top: TILE_SIZE * 16, left: TILE_SIZE * 2 });
 
-board.createEnemy({ top: TILE_SIZE * 5, left: TILE_SIZE * 9 });
-board.createEnemy({ top: TILE_SIZE * 4, left: TILE_SIZE * 17 });
-board.createEnemy({ top: TILE_SIZE * 6, left: TILE_SIZE * 15 });
-board.createEnemy({ top: TILE_SIZE * 3, left: TILE_SIZE * 16 });
-board.createEnemy({ top: TILE_SIZE * 7, left: TILE_SIZE * 12 });
+//spawn aleatório dos mini-demons.
+let enemiesCount = Number(prompt('Quantos inimigos quer enfrentar?'));
+for(let i = 0; i < enemiesCount; i++) {
+  const randomTop = Math.floor(Math.random() * 16 + 2);
+  const randomLeft = Math.floor(Math.random() * 16 + 2);
+  board.createEnemy({ top: TILE_SIZE * randomTop, left: TILE_SIZE * randomLeft });
+}
 
 //define o posicionamento das traps e do chest.
 board.createItem({ item: 'chest', top: TILE_SIZE * 2, left: TILE_SIZE * 18 });
